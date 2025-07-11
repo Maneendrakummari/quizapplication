@@ -1,11 +1,11 @@
-# Use OpenJDK as base image
-FROM eclipse-temurin:21-jdk
-
-# Set working directory
+# First stage: Build the JAR
+FROM maven:3.9.6-eclipse-temurin-21 AS build
 WORKDIR /app
+COPY . .
+RUN mvn clean package -DskipTests
 
-# Copy the jar (ensure it's built as part of Git repo or CI/CD)
-COPY target/quizapp-0.0.1-SNAPSHOT.jar app.jar
-
-# Run the jar
+# Second stage: Run the JAR
+FROM eclipse-temurin:21-jdk
+WORKDIR /app
+COPY --from=build /app/target/*.jar app.jar
 ENTRYPOINT ["java", "-jar", "app.jar"]
